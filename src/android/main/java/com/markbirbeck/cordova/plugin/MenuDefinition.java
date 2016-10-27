@@ -13,11 +13,32 @@ class MenuDefinition {
     final JSONArray mDefinition;
     final CallbackContext mCallbackContext;
 
+    /**
+     *
+     * @param definition
+     */
+    public MenuDefinition(JSONArray definition) {
+        this(definition, null);
+    }
+
+    /**
+     *
+     * @param definition
+     * @param callbackContext
+     */
     public MenuDefinition(JSONArray definition, final CallbackContext callbackContext) {
+        if( definition == null ) {
+            throw new IllegalArgumentException("array definition is null");
+        }
         mDefinition = definition;
         mCallbackContext = callbackContext;
     }
 
+    /**
+     *
+     * @param menu
+     * @param ctx
+     */
     public void createMenu(final Menu menu, final Activity ctx) {
         ctx.runOnUiThread(new Runnable() {
 
@@ -29,8 +50,10 @@ class MenuDefinition {
                         final JSONObject itemDef = mDefinition.getJSONObject(i);
                         final String title = itemDef.isNull("action") ? "" : itemDef.getString("action");
 
-                        MenuItem item = menu.add(title);
-                        item.setShowAsAction((itemDef.has("button") && itemDef.getBoolean("button")) ? MenuItem.SHOW_AS_ACTION_IF_ROOM : MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+                        final MenuItem item = menu.add(title);
+                        item.setShowAsAction((itemDef.has("button") && itemDef.getBoolean("button")) ?
+                                MenuItem.SHOW_AS_ACTION_IF_ROOM :
+                                MenuItem.SHOW_AS_ACTION_WITH_TEXT);
                     } catch (JSONException e) {
                         fire("ERROR processing menu" + e);
                     }
@@ -40,10 +63,17 @@ class MenuDefinition {
         });
     }
 
+    /**
+     *
+     * @param action
+     */
     public void fire(String action) {
-        PluginResult result = new PluginResult(PluginResult.Status.OK, action);
 
-        result.setKeepCallback(true);
-        mCallbackContext.sendPluginResult(result);
+        if( mCallbackContext!= null ) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, action);
+
+            result.setKeepCallback(true);
+            mCallbackContext.sendPluginResult(result);
+        }
     }
 }

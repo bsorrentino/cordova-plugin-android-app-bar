@@ -15,9 +15,36 @@ import org.json.JSONObject;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class AppBarPlugin extends CordovaPlugin {
-    private static final String TAG = "AppBarPlugin";
+    protected static final String TAG = "AppBarPlugin";
 
     private MenuDefinition menuDef = null;
+
+    /**
+     *
+     * @param definition
+     */
+    private final void setMenuDefinition( MenuDefinition definition ) {
+        if( definition == null ) {
+            throw new IllegalArgumentException( "menu definition is null");
+        }
+
+        menuDef = definition;
+
+    }
+
+    /**
+     *
+     * @param ctx
+     */
+    private final void invalidateOptionsMenu(final Activity ctx ) {
+        if( ctx == null ) {
+            throw new IllegalArgumentException( "ctx is null");
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            ctx.invalidateOptionsMenu();
+        }
+    }
 
     @Override
     public boolean execute(final String action, final JSONArray data, final CallbackContext callbackContext) throws JSONException {
@@ -25,7 +52,7 @@ public class AppBarPlugin extends CordovaPlugin {
          * Before we do anything, check that we actually have a bar to work with:
          */
 
-        final Activity ctx = (Activity) cordova;
+        final Activity ctx = cordova.getActivity();
         final ActionBar bar = ctx.getActionBar();
 
         /**
@@ -57,12 +84,8 @@ public class AppBarPlugin extends CordovaPlugin {
              */
 
             case "setActions":
-                menuDef = new MenuDefinition(data, callbackContext);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    ctx.invalidateOptionsMenu();
-                }
-
+                setMenuDefinition( new MenuDefinition(data, callbackContext) );
+                invalidateOptionsMenu(ctx);
                 return true;
 
             default:
@@ -81,7 +104,7 @@ public class AppBarPlugin extends CordovaPlugin {
 
             case "onCreateOptionsMenu":
                 if (menuDef != null) {
-                    menuDef.createMenu((Menu) data, (Activity) cordova);
+                    menuDef.createMenu((Menu) data, cordova.getActivity());
                 }
                 break;
 
